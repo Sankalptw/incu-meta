@@ -40,6 +40,8 @@ adminRouter.post("/register", async (req, res) => {
 // Admin Login
 adminRouter.post("/login", async (req, res) => {
     try {
+        console.log('Login attempt with body:', req.body); // DEBUG
+
         const reqBody = z.object({
             email: z.string().email(),
             password: z.string()
@@ -47,25 +49,33 @@ adminRouter.post("/login", async (req, res) => {
 
         const parsed = reqBody.safeParse(req.body);
         if (!parsed.success) {
+            console.log('Validation failed:', parsed.error.issues); // DEBUG
             return res.status(400).json({ message: "Invalid request body", error: parsed.error.issues });
         }
 
         const { email, password } = parsed.data;
+        console.log('Looking for admin with email:', email); // DEBUG
 
         const admin = await adminModel.findOne({ email });
         if (!admin) {
+            console.log('Admin not found'); // DEBUG
             return res.status(404).json({ message: "Admin not found" });
         }
 
+        console.log('Admin found, checking password'); // DEBUG
         const isPasswordCorrect = await bcrypt.compare(password, admin.password);
         if (!isPasswordCorrect) {
+            console.log('Password incorrect'); // DEBUG
             return res.status(401).json({ message: "Incorrect password" });
         }
 
+        console.log('Creating JWT token'); // DEBUG
         const token = jwt.sign({ email, id: admin._id }, JWT_ADMIN_SECRET, { expiresIn: "1h" });
 
         res.status(200).json({ message: "Login successful", token });
     } catch (err) {
+        console.error('❌ LOGIN ERROR:', err); // IMPORTANT - Shows full error
+        console.error('Error stack:', err.stack); // Shows where error occurred
         res.status(500).json({ message: "Error logging in", error: err.message });
     }
 });

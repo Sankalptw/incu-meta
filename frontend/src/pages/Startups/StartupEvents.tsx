@@ -75,7 +75,7 @@ const StartupEvents = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("https://incu-meta-backend.onrender.com/api/user/events");
+        const response = await axios.get("http://localhost:3000/api/user/events");
         setEvents(response.data.events);
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Failed to fetch events");
@@ -90,7 +90,7 @@ const StartupEvents = () => {
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://incu-meta-backend.onrender.com/api/user/events");
+      const response = await axios.get("http://localhost:3000/api/user/events");
       setEvents(response.data.events);
       toast.success("Events refreshed");
     } catch (error: any) {

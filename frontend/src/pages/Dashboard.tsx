@@ -21,7 +21,7 @@ const AdminDashboard = () => {
       }
 
       try {
-        const res = await fetch("https://incu-meta-backend.onrender.com/api/admin/dashboard-stats", {
+        const res = await fetch("http://localhost:3000/api/admin/dashboard-stats", {
           headers: { token: admin.token },
         });
         const data = await res.json();

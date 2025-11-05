@@ -72,7 +72,7 @@ const Schedules = () => {
     if (!admin?.token) return
 
     try {
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/all-startups", {
+      const response = await fetch("http://localhost:3000/api/admin/all-startups", {
         headers: {
           token: admin.token,
         },
@@ -90,7 +90,7 @@ const Schedules = () => {
     if (!admin?.token) return
 
     try {
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/all-schedules", {
+      const response = await fetch("http://localhost:3000/api/admin/all-schedules", {
         headers: {
           token: admin.token,
         },
@@ -173,7 +173,7 @@ const Schedules = () => {
     }
 
     try {
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/schedule-meeting", {
+      const response = await fetch("https://localhost:3000/api/admin/schedule-meeting", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

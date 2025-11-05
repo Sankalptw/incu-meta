@@ -41,7 +41,7 @@ const ScheduleDetails = () => {
       if (!admin?.token || !id) return;
 
       try {
-        const response = await fetch(`https://incu-meta-backend.onrender.com/api/admin/all-schedules`, {
+        const response = await fetch(`http://localhost:3000/api/admin/all-schedules`, {
           headers: {
             token: admin.token,
           },

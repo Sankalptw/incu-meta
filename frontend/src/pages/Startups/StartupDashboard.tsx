@@ -30,7 +30,7 @@ const StartupDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get("https://incu-meta-backend.onrender.com/api/user/dashboard-stats");
+        const res = await axios.get("http://localhost:3000/api/user/dashboard-stats");
         setStats(res.data);
         setLoading(false);
       } catch (error) {

@@ -31,7 +31,7 @@ const Apply = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/user/apply", {
+      const response = await fetch("http://localhost:3000/api/user/apply", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

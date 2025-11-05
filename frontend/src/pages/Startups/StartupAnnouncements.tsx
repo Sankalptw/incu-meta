@@ -22,7 +22,7 @@ const StartupAnnouncements = () => {
     try {
       const token = localStorage.getItem("startupToken");
 
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/user/announcements", {
+      const response = await fetch("http://localhost:3000/api/user/announcements", {
         headers: {
           token: token || "",
         },

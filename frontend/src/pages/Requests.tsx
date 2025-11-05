@@ -32,7 +32,7 @@ const Requests = () => {
       if (!admin?.token) return;
 
       try {
-        const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/all-startups", {
+        const response = await fetch("http://localhost:3000/api/admin/all-startups", {
           headers: {
             token: admin.token,
           },
@@ -60,7 +60,7 @@ const Requests = () => {
     if (!admin?.token || !selectedStartup) return;
 
     try {
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/approve-startup", {
+      const response = await fetch("http://localhost:3000/api/admin/approve-startup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

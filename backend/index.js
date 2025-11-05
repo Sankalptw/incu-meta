@@ -26,10 +26,18 @@ app.get('/', (req, res) => {
 });
 
 
-async function main(){
-    await mongoose.connect(process.env.MONGO_URL)
+async function main() {
+  try {
+    await mongoose.connect(process.env.MONGO_URL);
+    console.log('MongoDB connected successfully!');
+    
     app.listen(port, () => {
-      console.log(`Example app listening at http:/user//user/localhost:${port}`);
+      console.log(`Example app listening at http://localhost:${port}`);
     });
+  } catch (error) {
+    console.error('Connection error:', error);
+    process.exit(1);
   }
-  main()
+}
+
+main();

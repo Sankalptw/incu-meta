@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
 
-const host = "https://incu-meta-backend.onrender.com";
+const host = "http://localhost:3000"; // Backend server URL
 
 type Startup = {
   email: string;

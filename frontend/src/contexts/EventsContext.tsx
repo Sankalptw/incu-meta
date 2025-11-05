@@ -30,7 +30,7 @@ export const EventsProvider = ({ children }: { children: React.ReactNode }) => {
   const refreshEvents = async () => {
     setLoading(true);
     try {
-      const res = await fetch("https://incu-meta-backend.onrender.com/api/user/events");
+      const res = await fetch("http://localhost:3000/api/user/events");
       const data = await res.json();
       setEvents(data.events || []);
     } catch (error) {
@@ -49,7 +49,7 @@ export const EventsProvider = ({ children }: { children: React.ReactNode }) => {
     if (!admin?.token) return;
 
     try {
-      const res = await fetch("https://incu-meta-backend.onrender.com/api/admin/create-event", {
+      const res = await fetch("http://localhost:3000/api/admin/create-event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export const EventsProvider = ({ children }: { children: React.ReactNode }) => {
     if (!admin?.token) return;
 
     try {
-      await fetch("https://incu-meta-backend.onrender.com/api/admin/remove-event", {
+      await fetch("http://localhost:3000/api/admin/remove-event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

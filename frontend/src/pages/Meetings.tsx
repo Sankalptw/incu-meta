@@ -48,12 +48,12 @@ const Meetings = () => {
       
       try {
         const [meetingsResponse, startupsResponse] = await Promise.all([
-          fetchWithMock("https://incu-meta-backend.onrender.com/api/admin/all-schedules", {
+          fetchWithMock("http://localhost:3000/api/admin/all-schedules", {
             headers: {
               Authorization: `Bearer ${admin.token}`,
             },
           }),
-          fetchWithMock("https://incu-meta-backend.onrender.com/api/admin/all-startups", {
+          fetchWithMock("http://localhost:3000/api/admin/all-startups", {
             headers: {
               Authorization: `Bearer ${admin.token}`,
             },
@@ -82,7 +82,7 @@ const Meetings = () => {
     }
     
     try {
-      const response = await fetchWithMock("https://incu-meta-backend.onrender.com/api/admin/schedule-meeting", {
+      const response = await fetchWithMock("http://localhost:3000/api/admin/schedule-meeting", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -20,7 +20,7 @@ const StartupSchedules = () => {
     const fetchSchedules = async () => {
       try {
         const token = localStorage.getItem("startup_token");
-        const res = await axios.get("https://incu-meta-backend.onrender.com/api/user/my-schedules", {
+        const res = await axios.get("http://localhost:3000/api/user/my-schedules", {
           headers: { token },
         });
         setSchedules(res.data.schedules);

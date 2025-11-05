@@ -45,7 +45,7 @@ const StartupDetails = () => {
       }
 
       try {
-        const response = await fetch(`https://incu-meta-backend.onrender.com/api/admin/all-startups/${id}`, {
+        const response = await fetch(`http://localhost:3000/api/admin/all-startups/${id}`, {
           headers: {
             token: admin.token,
           },

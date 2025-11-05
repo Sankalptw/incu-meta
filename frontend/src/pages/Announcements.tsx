@@ -56,7 +56,7 @@ const Announcements = () => {
     }
   
     try {
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/create-announcement", {
+      const response = await fetch("http://localhost:3000/api/admin/create-announcement", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,7 +91,7 @@ const Announcements = () => {
   
   const handleDeleteAnnouncement = async (id: string) => {
     try {
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/remove-announcement", {
+      const response = await fetch("http://localhost:3000/api/admin/remove-announcement", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

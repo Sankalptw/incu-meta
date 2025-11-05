@@ -132,7 +132,7 @@ const Events = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/create-event", {
+      const response = await fetch("http://localhost:3000/api/admin/create-event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -165,7 +165,7 @@ const Events = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/update-event", {
+      const response = await fetch("http://localhost:3000/api/admin/update-event", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -192,7 +192,7 @@ const Events = () => {
   const handleDeleteEvent = async (eventId: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch("https://incu-meta-backend.onrender.com/api/admin/remove-event", {
+      const response = await fetch("http://localhost:3000/api/admin/remove-event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
