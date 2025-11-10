@@ -1,7 +1,9 @@
 // src/layouts/StartupLayout.tsx
-
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import LegalChatbot from '../ui/LegalChatbot'; // ✅ Already added correctly
+
 import {
   LayoutDashboard,
   Bell,
@@ -31,7 +33,7 @@ interface StartupLayoutProps {
 }
 
 export const StartupLayout = ({ children }: StartupLayoutProps) => {
-  const { startup, logout } = useStartupAuth(); // ✅ fixed from `user` to `startup`
+  const { startup, logout } = useStartupAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -118,6 +120,9 @@ export const StartupLayout = ({ children }: StartupLayoutProps) => {
         <Separator />
         <div className="flex-1 p-6">{children}</div>
       </main>
+
+      {/* ✅ Legal Chatbot - Added at the end */}
+      <LegalChatbot />
     </div>
   );
 };

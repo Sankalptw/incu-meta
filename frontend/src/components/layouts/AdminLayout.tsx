@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import LegalChatbot from '../ui/LegalChatbot'; // ✅ ADD THIS IMPORT
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -216,6 +217,9 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
         </main>
       </div>
+
+      {/* ✅ LEGAL CHATBOT - ADD THIS */}
+      <LegalChatbot />
     </div>
   );
 };

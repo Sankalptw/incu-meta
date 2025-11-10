@@ -9,6 +9,7 @@ const {userRouter} = require("./routes/user")
 const {adminRouter} = require("./routes/admin")
 // const {announcementRouter} = require("./routes/announcement")
 // const {eventRouter} = require("./routes/event")
+const legalChatbotRoutes = require('./routes/legalChatbot');
 
 app.use(express.json());
 app.use(cors());
@@ -19,6 +20,7 @@ app.use('/api/admin', adminRouter);
 // app.use('/api/announcement', announcementRouter);
 // app.use('/api/event', eventRouter);
 // app.use('/api/auth', authRouter);
+app.use('/api/legal', legalChatbotRoutes);
 
 
 app.get('/', (req, res) => {

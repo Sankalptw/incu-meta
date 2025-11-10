@@ -11,6 +11,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - MONGODB_URI=${MONGO_URL}
+      - JWT_USER_SECRET=${JWT_USER_SECRET}
+      - JWT_ADMIN_SECRET=${JWT_ADMIN_SECRET}
     volumes:
       - ./backend:/app/backend
     restart: unless-stopped
