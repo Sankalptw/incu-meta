@@ -7,13 +7,18 @@ const jwt = require("jsonwebtoken");
 const { JWT_ADMIN_SECRET } = require("../config");
 const { adminMiddleware } = require("../middlewares/admin");
 
-// Admin signup
+// Admin signup - ✅ UPDATED
 adminRouter.post("/register", async (req, res) => {
     try {
         const reqBody = z.object({
             email: z.string().email(),
             password: z.string().min(3),
-            name: z.string().min(1)
+            name: z.string().min(1),
+            // ✅ NEW FIELDS
+            userType: z.string().optional().default('admin'),
+            specialization: z.string().optional(),
+            location: z.string().optional(),
+            website: z.string().optional()
         });
 
         const parsed = reqBody.safeParse(req.body);
@@ -21,7 +26,12 @@ adminRouter.post("/register", async (req, res) => {
             return res.status(400).json({ message: "Invalid request body", error: parsed.error.issues });
         }
 
-        const { email, password, name } = parsed.data;
+        const { email, password, name, userType, specialization, location, website } = parsed.data;
+
+        // ✅ NEW: Validate specialization for incubators
+        if (userType === 'incubator' && !specialization) {
+            return res.status(400).json({ message: "Specialization is required for incubators" });
+        }
 
         const existingAdmin = await adminModel.findOne({ email });
         if (existingAdmin) {
@@ -29,9 +39,28 @@ adminRouter.post("/register", async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newAdmin = await adminModel.create({ email, password: hashedPassword, name });
+        
+        // ✅ NEW: Save incubator-specific fields
+        const newAdmin = await adminModel.create({
+            email,
+            password: hashedPassword,
+            name,
+            userType: userType || 'admin',
+            specialization: userType === 'incubator' ? specialization : null,
+            location: userType === 'incubator' ? location : null,
+            website: userType === 'incubator' ? website : null
+        });
 
-        res.status(201).json({ message: "Admin created", admin: { email: newAdmin.email, name: newAdmin.name } });
+        res.status(201).json({
+            message: "Admin created",
+            success: true,
+            admin: {
+                email: newAdmin.email,
+                name: newAdmin.name,
+                userType: newAdmin.userType,
+                specialization: newAdmin.specialization
+            }
+        });
     } catch (err) {
         res.status(500).json({ message: "Error creating admin", error: err.message });
     }
@@ -40,7 +69,7 @@ adminRouter.post("/register", async (req, res) => {
 // Admin Login
 adminRouter.post("/login", async (req, res) => {
     try {
-        console.log('Login attempt with body:', req.body); // DEBUG
+        console.log('Login attempt with body:', req.body);
 
         const reqBody = z.object({
             email: z.string().email(),
@@ -49,40 +78,61 @@ adminRouter.post("/login", async (req, res) => {
 
         const parsed = reqBody.safeParse(req.body);
         if (!parsed.success) {
-            console.log('Validation failed:', parsed.error.issues); // DEBUG
+            console.log('Validation failed:', parsed.error.issues);
             return res.status(400).json({ message: "Invalid request body", error: parsed.error.issues });
         }
 
         const { email, password } = parsed.data;
-        console.log('Looking for admin with email:', email); // DEBUG
+        console.log('Looking for admin with email:', email);
 
         const admin = await adminModel.findOne({ email });
         if (!admin) {
-            console.log('Admin not found'); // DEBUG
+            console.log('Admin not found');
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        console.log('Admin found, checking password'); // DEBUG
+        console.log('Admin found, checking password');
         const isPasswordCorrect = await bcrypt.compare(password, admin.password);
         if (!isPasswordCorrect) {
-            console.log('Password incorrect'); // DEBUG
+            console.log('Password incorrect');
             return res.status(401).json({ message: "Incorrect password" });
         }
 
-        console.log('Creating JWT token'); // DEBUG
-        const token = jwt.sign({ email, id: admin._id }, JWT_ADMIN_SECRET, { expiresIn: "1h" });
+        console.log('Creating JWT token');
+        // ✅ UPDATED: Add role to token
+        const token = jwt.sign(
+            {
+                email,
+                id: admin._id,
+                role: admin.userType // ✅ NEW: Include userType as role
+            },
+            JWT_ADMIN_SECRET,
+            { expiresIn: "1h" }
+        );
 
-        res.status(200).json({ message: "Login successful", token });
+        res.status(200).json({
+            message: "Login successful",
+            success: true,
+            token,
+            // ✅ NEW: Return user info
+            user: {
+                id: admin._id,
+                email: admin.email,
+                name: admin.name,
+                userType: admin.userType,
+                specialization: admin.specialization
+            }
+        });
     } catch (err) {
-        console.error('❌ LOGIN ERROR:', err); // IMPORTANT - Shows full error
-        console.error('Error stack:', err.stack); // Shows where error occurred
+        console.error('❌ LOGIN ERROR:', err);
+        console.error('Error stack:', err.stack);
         res.status(500).json({ message: "Error logging in", error: err.message });
     }
 });
 
 adminRouter.get('/profile', adminMiddleware, async (req, res) => {
     try {
-        const { userId } = req; 
+        const { userId } = req;
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized" });
         }
@@ -93,11 +143,24 @@ adminRouter.get('/profile', adminMiddleware, async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        res.json({ user });
+        // ✅ UPDATED: Return more info
+        res.json({
+            success: true,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                userType: user.userType,
+                specialization: user.specialization,
+                location: user.location,
+                website: user.website
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 });
+
 adminRouter.get("/dashboard-stats", async (req, res) => {
     try {
       const totalStartups = await userModel.countDocuments();
@@ -161,6 +224,7 @@ adminRouter.get('/all-startups', adminMiddleware, async (req, res) => {
         res.status(500).json({message: "Error fetching startups"})
     }
 });
+
 adminRouter.get('/all-startups/:id', adminMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
@@ -173,6 +237,7 @@ adminRouter.get('/all-startups/:id', adminMiddleware, async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 });
+
 adminRouter.post('/approve-startup', adminMiddleware, async (req, res) => {
     try{
         const {id} = req.body;
@@ -210,6 +275,7 @@ adminRouter.post('/remove-event', adminMiddleware, async (req, res) => {
         res.status(500).json({message: "Error deleting event"})
     }
 });
+
 adminRouter.post('/create-announcement', adminMiddleware, async (req, res) => {
     try{
         const {title, message} = req.body;
@@ -252,6 +318,7 @@ adminRouter.get('/all-schedules', adminMiddleware, async (req, res) => {
         res.status(500).json({ message: "Error fetching schedules" });
     }
 });
+
 adminRouter.get('/schedule/:id', adminMiddleware, async (req, res) => {
     try {
         const { id } = req.params;

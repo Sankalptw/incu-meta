@@ -33,7 +33,9 @@ import { StartupLayout } from "./components/layouts/StartupLayout";
 import StartupEvents from "./pages/Startups/StartupEvents";
 import StartupAnnouncements from "./pages/Startups/StartupAnnouncements";
 import StartupSchedules from "./pages/Startups/StartupSchedules";
-
+import StartupProfileSetup from './pages/Startups/StartupProfileSetup'; // ← Add import
+import MatchingRequest from './pages/Startups/MatchingRequest';
+import MatchingRequests from './pages/Admin/MatchingRequests';
 
 const queryClient = new QueryClient();
 
@@ -64,16 +66,24 @@ const App = () => (
                 <Route path="/admin/record-mom" element={<RecordMOM />} />
                 <Route path="/admin/requests" element={<Requests />} />
                 <Route path="/admin/schedules" element={<Schedules />} />
+                <Route path="/admin/matching-requests" element={<MatchingRequests />} />
+
+
                 <Route path="/admin/schedule/:id" element={<ScheduleDetails />} />
               </Route>
 
               {/* Startup Protected Routes */}
               <Route element={<StartupProtectedRoute />}>
+
                 {/* <Route element={<StartupLayout/>}> */}
                   <Route path="/startup/dashboard" element={<StartupDashboard />} />
                   <Route path="/startup/announcements" element={<StartupAnnouncements/>} />
                   <Route path="/startup/events" element={<StartupEvents />} />
                   <Route path="/startup/schedules" element={<StartupSchedules/>} />
+                  <Route path="/startup/profile-setup" element={<StartupProfileSetup />} />
+                  <Route path="/startup/matching" element={<MatchingRequest />} />
+
+
                 {/* </Route> */}
               </Route>
 

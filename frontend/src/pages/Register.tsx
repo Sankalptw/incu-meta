@@ -7,30 +7,67 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 
 const Register = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    userType: "admin", // ✅ NEW
+    specialization: "", // ✅ NEW
+    location: "", // ✅ NEW
+    website: "" // ✅ NEW
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // ✅ All specialization options
+  const specializations = [
+    { value: "Technology", label: "🖥️ Technology" },
+    { value: "Healthcare", label: "🏥 Healthcare" },
+    { value: "Finance", label: "💰 Finance" },
+    { value: "E-commerce", label: "🛍️ E-commerce" },
+    { value: "EdTech", label: "📚 EdTech" },
+    { value: "ClimaTech", label: "🌍 ClimaTech" },
+    { value: "AgriTech", label: "🌾 AgriTech" },
+    { value: "AI/ML", label: "🤖 AI/ML" },
+    { value: "Blockchain", label: "⛓️ Blockchain" }
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !email || !password || !confirmPassword) {
-      toast.error("Please fill in all fields");
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      toast.error("Please fill in all required fields");
       return;
     }
     
-    if (password !== confirmPassword) {
+    // ✅ NEW: Require specialization for incubators
+    if (formData.userType === "incubator" && !formData.specialization) {
+      toast.error("Please select a specialization for incubators");
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
     
     try {
       setIsSubmitting(true);
-      await register(name, email, password);
+      
+      // ✅ NEW: Pass all data including specialization to register
+      await register(
+        formData.name, 
+        formData.email, 
+        formData.password,
+        formData.userType, // ✅ NEW
+        formData.specialization, // ✅ NEW
+        formData.location, // ✅ NEW
+        formData.website // ✅ NEW
+      );
+      
+      toast.success(`${formData.userType === 'incubator' ? 'Incubator' : 'Admin'} account created!`);
       navigate("/login");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -39,6 +76,8 @@ const Register = () => {
       setIsSubmitting(false);
     }
   };
+
+  const isIncubator = formData.userType === "incubator";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -50,23 +89,48 @@ const Register = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Admin Registration</CardTitle>
-            <CardDescription>Create your administrator account</CardDescription>
+            <CardTitle>
+              {isIncubator ? "Incubator Registration" : "Admin Registration"}
+            </CardTitle>
+            <CardDescription>
+              {isIncubator 
+                ? "Create your incubator account and get matched with startups" 
+                : "Create your administrator account"}
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
+              {/* ✅ NEW: Account Type Selector */}
+              <div className="space-y-2">
+                <label htmlFor="userType" className="text-sm font-medium">
+                  Account Type
+                </label>
+                <select
+                  id="userType"
+                  value={formData.userType}
+                  onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-incumeta-600"
+                >
+                  <option value="admin">👤 Platform Admin</option>
+                  <option value="incubator">🏢 Incubator Manager</option>
+                </select>
+              </div>
+
+              {/* Full Name */}
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium">
-                  Full Name
+                  {isIncubator ? "Incubator Name" : "Full Name"}
                 </label>
                 <Input
                   id="name"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  placeholder={isIncubator ? "Tech Valley Incubator" : "John Doe"}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
+
+              {/* Email */}
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -74,12 +138,14 @@ const Register = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={isIncubator ? "incubator@example.com" : "admin@example.com"}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
+
+              {/* Password */}
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
@@ -88,11 +154,13 @@ const Register = () => {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                 />
               </div>
+
+              {/* Confirm Password */}
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm font-medium">
                   Confirm Password
@@ -101,12 +169,70 @@ const Register = () => {
                   id="confirmPassword"
                   type="password"
                   placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   required
                 />
               </div>
+
+              {/* ✅ NEW: Specialization (only for incubators) */}
+              {isIncubator && (
+                <div className="space-y-2">
+                  <label htmlFor="specialization" className="text-sm font-medium">
+                    Your Specialization 🎯
+                  </label>
+                  <select
+                    id="specialization"
+                    value={formData.specialization}
+                    onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-incumeta-600"
+                    required
+                  >
+                    <option value="">Select your specialization...</option>
+                    {specializations.map((spec) => (
+                      <option key={spec.value} value={spec.value}>
+                        {spec.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Startups in this domain will be matched with you
+                  </p>
+                </div>
+              )}
+
+              {/* ✅ NEW: Location (only for incubators) */}
+              {isIncubator && (
+                <div className="space-y-2">
+                  <label htmlFor="location" className="text-sm font-medium">
+                    Location
+                  </label>
+                  <Input
+                    id="location"
+                    placeholder="e.g., San Francisco, CA"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  />
+                </div>
+              )}
+
+              {/* ✅ NEW: Website (only for incubators) */}
+              {isIncubator && (
+                <div className="space-y-2">
+                  <label htmlFor="website" className="text-sm font-medium">
+                    Website
+                  </label>
+                  <Input
+                    id="website"
+                    type="url"
+                    placeholder="https://yourincubator.com"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                  />
+                </div>
+              )}
             </CardContent>
+
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 

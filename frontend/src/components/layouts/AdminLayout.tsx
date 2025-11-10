@@ -57,6 +57,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     { path: '/admin/events', label: 'Upcoming Events', icon: <Calendar size={18} /> },
     { path: '/admin/schedules', label: 'Scheduled Meetings', icon: <CalendarClock size={18} /> },
     { path: '/admin/requests', label: 'Requests', icon: <HelpCircle size={18} /> },
+    { path: '/admin/matching-requests', label: 'Startup Requests', icon: <Bell size={18} /> }
   ];
 
   // Update page title based on current path

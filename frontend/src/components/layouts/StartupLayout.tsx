@@ -3,13 +3,14 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import LegalChatbot from '../ui/LegalChatbot'; // ✅ Already added correctly
-
 import {
   LayoutDashboard,
   Bell,
   Calendar,
+  Settings,
   CalendarClock,
   LogOut,
+  Rocket,
   Menu,
   X,
   UserCircle
@@ -53,6 +54,10 @@ export const StartupLayout = ({ children }: StartupLayoutProps) => {
     { path: '/startup/announcements', label: 'Announcements', icon: <Bell size={18} /> },
     { path: '/startup/events', label: 'Upcoming Events', icon: <Calendar size={18} /> },
     { path: '/startup/schedules', label: 'Scheduled Meetings', icon: <CalendarClock size={18} /> },
+    { path: '/startup/profile-setup', label: 'Profile Setup', icon: <Settings size={18} /> },
+    { path: '/startup/matching', label: 'Find Incubator', icon: <Rocket size={18} /> },
+
+
   ];
 
   useEffect(() => {

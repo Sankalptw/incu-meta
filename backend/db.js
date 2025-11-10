@@ -22,6 +22,21 @@ const adminSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
+    
+    // ✅ NEW FIELDS FOR MATCHING:
+    userType: {
+      type: String,
+      enum: ['admin', 'incubator'],
+      default: 'admin'
+    },
+    specialization: {
+      type: String,
+      enum: ['Technology', 'Healthcare', 'Finance', 'E-commerce', 'EdTech', 'ClimaTech', 'AgriTech', 'AI/ML', 'Blockchain'],
+      sparse: true
+    },
+    location: String,
+    website: String,
+    
     createdAt: { type: Date, default: Date.now }
   });
 
