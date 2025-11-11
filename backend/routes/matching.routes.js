@@ -2,32 +2,37 @@ const express = require('express');
 const matchingRouter = express.Router();
 const MatchingRequest = require('../models/matching.model');
 const jwt = require('jsonwebtoken');
-
-// Import your Admin and Startup models from db.js
-// Adjust this based on how your db.js exports!
 const Admin = require('../models/admin.model');
 const Startup = require('../models/startup.model');
 
-
-// Middleware
-// const verifyToken = (req, res, next) => {
-//   const token = req.headers['authorization']?.split(' ')[1];
-//   if (!token) return res.status(401).json({ error: 'No token provided' });
-  
-//   jwt.verify(token, process.env.JWT_SECRET || 'secret', (err, decoded) => {
-//     if (err) return res.status(403).json({ error: 'Invalid token' });
-//     req.userId = decoded.id;
-//     req.userRole = decoded.role;
-//     next();
-//   });
-// };
-// Temporary middleware for testing (bypasses auth)
+// ✅ JWT Verification Middleware
 const verifyToken = (req, res, next) => {
-  req.userId = "dummyUserId";
-  req.userRole = "startup"; // or "admin" if testing incubator routes
-  next();
+  const token = req.headers['authorization']?.split(' ')[1] || req.headers['token'];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+  
+  try {
+    // Try admin token first
+    try {
+      const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET || 'your-admin-secret';
+      const decoded = jwt.verify(token, JWT_ADMIN_SECRET);
+      req.userId = decoded.id;
+      req.userRole = 'admin';
+      return next();
+    } catch (adminErr) {
+      // If admin fails, try user token
+      const JWT_USER_SECRET = process.env.JWT_USER_SECRET || 'your-user-secret';
+      const decoded = jwt.verify(token, JWT_USER_SECRET);
+      req.userId = decoded.id;
+      req.userRole = 'startup';
+      return next();
+    }
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid token' });
+  }
 };
-
 
 // ✅ 1. STARTUP: Create matching request
 matchingRouter.post('/request', verifyToken, async (req, res) => {
@@ -88,72 +93,45 @@ matchingRouter.post('/request', verifyToken, async (req, res) => {
       incubatorsCount: matchingIncubators.length
     });
   } catch (error) {
+    console.error('[matching.request] error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ 2. INCUBATOR: Get all pending requests
-matchingRouter.get('/pending-requests', verifyToken, async (req, res) => {
+// ✅ 2. INCUBATOR: Get all requests sent to them
+matchingRouter.get('/incubator-requests', verifyToken, async (req, res) => {
   try {
     if (req.userRole !== 'admin') {
-      return res.status(403).json({ error: 'Only incubators can view requests' });
+      return res.status(403).json({ error: 'Only incubators can view this' });
     }
 
-    // Find incubator
-    const incubator = await Admin.findById(req.userId);
-    if (!incubator || incubator.userType !== 'incubator') {
-      return res.status(403).json({ error: 'Not an incubator account' });
-    }
-
-    // Find requests sent to this incubator with pending status
-    const pendingRequests = await MatchingRequest.find({
-      'responses.incubatorId': req.userId,
-      'responses.status': 'pending'
+    const requests = await MatchingRequest.find({
+      'sentToIncubators.incubatorId': req.userId
     }).sort({ createdAt: -1 });
 
+    const formattedRequests = requests.map(req => ({
+      id: req._id,
+      startupName: req.startupName,
+      startupDomain: req.startupDomain,
+      problemStatement: req.problemStatement,
+      solution: req.solution,
+      founderName: req.founderName,
+      founderEmail: req.founderEmail,
+      myResponse: req.responses.find(r => r.incubatorId.toString() === req.userId),
+      createdAt: req.createdAt
+    }));
+
     res.json({
       success: true,
-      count: pendingRequests.length,
-      requests: pendingRequests
+      requests: formattedRequests
     });
   } catch (error) {
+    console.error('[matching.incubator-requests] error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ 3. INCUBATOR: View full request details
-matchingRouter.get('/request/:requestId', verifyToken, async (req, res) => {
-  try {
-    if (req.userRole !== 'admin') {
-      return res.status(403).json({ error: 'Only incubators can view requests' });
-    }
-
-    const { requestId } = req.params;
-    const matchingRequest = await MatchingRequest.findById(requestId);
-
-    if (!matchingRequest) {
-      return res.status(404).json({ error: 'Request not found' });
-    }
-
-    // Check if authorized
-    const incubatorResponse = matchingRequest.responses.find(
-      r => r.incubatorId.toString() === req.userId
-    );
-
-    if (!incubatorResponse) {
-      return res.status(403).json({ error: 'Not authorized to view this request' });
-    }
-
-    res.json({
-      success: true,
-      request: matchingRequest
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ✅ 4. INCUBATOR: Accept or Reject request
+// ✅ 3. INCUBATOR: Accept or Reject request
 matchingRouter.put('/request/:requestId/respond', verifyToken, async (req, res) => {
   try {
     if (req.userRole !== 'admin') {
@@ -182,7 +160,7 @@ matchingRouter.put('/request/:requestId/respond', verifyToken, async (req, res) 
     }
 
     matchingRequest.responses[responseIndex] = {
-      ...matchingRequest.responses[responseIndex],
+      ...matchingRequest.responses[responseIndex].toObject(),
       status,
       feedback,
       contactPerson,
@@ -190,7 +168,7 @@ matchingRouter.put('/request/:requestId/respond', verifyToken, async (req, res) 
       respondedAt: new Date()
     };
 
-    // Calculate match score (% of interested incubators)
+    // Calculate match score
     const interestedCount = matchingRequest.responses.filter(r => r.status === 'interested').length;
     const totalResponses = matchingRequest.responses.filter(r => r.respondedAt).length;
     const matchScore = totalResponses > 0 ? (interestedCount / totalResponses) * 100 : 0;
@@ -209,11 +187,12 @@ matchingRouter.put('/request/:requestId/respond', verifyToken, async (req, res) 
       matchScore: matchingRequest.matchScore.toFixed(1)
     });
   } catch (error) {
+    console.error('[matching.respond] error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ 5. STARTUP: Get their requests
+// ✅ 4. STARTUP: Get their requests
 matchingRouter.get('/my-requests', verifyToken, async (req, res) => {
   try {
     if (req.userRole !== 'startup') {
@@ -237,11 +216,12 @@ matchingRouter.get('/my-requests', verifyToken, async (req, res) => {
       }))
     });
   } catch (error) {
+    console.error('[matching.my-requests] error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ 6. STARTUP: See interested incubators
+// ✅ 5. STARTUP: See interested incubators
 matchingRouter.get('/request/:requestId/interested', verifyToken, async (req, res) => {
   try {
     if (req.userRole !== 'startup') {
@@ -282,11 +262,12 @@ matchingRouter.get('/request/:requestId/interested', verifyToken, async (req, re
       interestedIncubators
     });
   } catch (error) {
+    console.error('[matching.interested] error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ 7. STARTUP: Select an incubator to match with
+// ✅ 6. STARTUP: Select an incubator to match with
 matchingRouter.put('/request/:requestId/select/:incubatorId', verifyToken, async (req, res) => {
   try {
     if (req.userRole !== 'startup') {
@@ -326,6 +307,7 @@ matchingRouter.put('/request/:requestId/select/:incubatorId', verifyToken, async
       selectedIncubator: matchingRequest.selectedIncubator
     });
   } catch (error) {
+    console.error('[matching.select] error:', error);
     res.status(500).json({ error: error.message });
   }
 });

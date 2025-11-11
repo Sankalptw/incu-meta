@@ -54,7 +54,6 @@ userRouter.post("/apply", async (req, res) => {
       fundingStage,
       revenue,
       teamSize,
-      // isApproved intentionally left alone (default false) — we may auto-approve on login for dev
     });
 
     return res.status(201).json({
@@ -112,7 +111,7 @@ userRouter.get("/dashboard-stats", userMiddleware, async (req, res) => {
 });
 
 // -----------------------------
-// User Login
+// User Login - ✅ FIXED
 // -----------------------------
 userRouter.post("/login", async (req, res) => {
   try {
@@ -132,17 +131,14 @@ userRouter.post("/login", async (req, res) => {
 
     const user = await userModel.findOne({ email });
     if (!user) {
-      // keep 404 to avoid leaking whether account exists in prod; for dev you can return 401 if you prefer
       return res.status(404).json({ message: "User not found" });
     }
 
-    // === DEV-FRIENDLY AUTO-APPROVE (remove in production) ===
-    // If user isn't approved, auto-approve them so testing + matching works without admin actions.
+    // Auto-approve for development
     if (!user.isApproved) {
       console.warn(`[user.login] Auto-approving user ${email} for development/testing.`);
       user.isApproved = true;
       await user.save();
-      // continue to password check after approval
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
@@ -150,11 +146,20 @@ userRouter.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Incorrect password" });
     }
 
-    const token = jwt.sign({ email, id: user._id, role: user.userType || "startup" }, JWT_USER_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { email, id: user._id, role: user.userType || "startup" }, 
+      JWT_USER_SECRET, 
+      { expiresIn: "1h" }
+    );
 
-    return res.status(200).json({ message: "Login successful", token });
+    // ✅ CRITICAL FIX: Return userId, name, and email
+    return res.status(200).json({ 
+      message: "Login successful", 
+      token,
+      userId: user._id.toString(), // ← This fixes the ObjectId error
+      name: user.name,
+      email: user.email
+    });
   } catch (err) {
     console.error("[user.login] error:", err);
     return res

@@ -1,10 +1,9 @@
 // src/contexts/StartupAuthContext.tsx
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
 
-const host = "http://localhost:3000"; // Backend server URL
+const host = "http://localhost:3000";
 
 type Startup = {
   email: string;
@@ -34,7 +33,7 @@ export const StartupAuthProvider = ({ children }: { children: ReactNode }) => {
     const interceptor = axios.interceptors.request.use((config) => {
       const token = localStorage.getItem('startupToken');
       if (token) {
-        config.headers.token = token; // ✅ This will match your backend
+        config.headers.token = token;
       }
       return config;
     });
@@ -89,9 +88,10 @@ export const StartupAuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const response = await axios.post(`${host}/api/user/login`, { email, password });
-      const { token, name } = response.data;
+      const { token, name, userId } = response.data; // ✅ Extract userId
 
       localStorage.setItem('startupToken', token);
+      localStorage.setItem('startupId', userId); // ✅ Store MongoDB _id
       localStorage.setItem('startupName', name);
       localStorage.setItem('startupEmail', email);
 
@@ -106,6 +106,7 @@ export const StartupAuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.removeItem('startupToken');
+    localStorage.removeItem('startupId'); // ✅ Remove startupId
     localStorage.removeItem('startupName');
     localStorage.removeItem('startupEmail');
     setStartup(null);
