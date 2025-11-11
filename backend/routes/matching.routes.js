@@ -99,7 +99,7 @@ matchingRouter.post('/request', verifyToken, async (req, res) => {
 });
 
 // ✅ 2. INCUBATOR: Get all requests sent to them
-matchingRouter.get('/incubator-requests', verifyToken, async (req, res) => {
+matchingRouter.get('/pending-requests', verifyToken, async (req, res) => {
   try {
     if (req.userRole !== 'admin') {
       return res.status(403).json({ error: 'Only incubators can view this' });
